@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler, Normalizer
 
-from utils import to_z_score
+from ..utils import to_z_score
 
 
 

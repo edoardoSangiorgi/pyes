@@ -1,6 +1,6 @@
 
 
-def splitter(vector, indices):
+def split_data(vector, indices):
     '''
         splits a vector into many parts as the index
 

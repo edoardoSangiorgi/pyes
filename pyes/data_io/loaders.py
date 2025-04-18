@@ -1,7 +1,7 @@
 import dill
 
 #*### LOAD FROM BINARY FILE ########################################################################
-def load_from_binaryFile(self, filename, path=''):
+def load_from_binaryFile(filename, path=''):
     '''
         Load object from a binary file
 
@@ -13,7 +13,7 @@ def load_from_binaryFile(self, filename, path=''):
             str
     '''
 
-    name = path+filename
+    name = path + filename
     file =  open( name, 'rb')
     obj = dill.load(file)
     file.close()
@@ -22,7 +22,7 @@ def load_from_binaryFile(self, filename, path=''):
 
 
 #*### LOAD FROM TEXT FILE ########################################################################
-def load_from_textFile(self, filename, path=''):
+def load_from_textFile(filename, path=''):
     '''
         Save object to file
 
@@ -34,7 +34,7 @@ def load_from_textFile(self, filename, path=''):
             str
         '''
 
-    name = path+filename
+    name = path + filename
     file =  open( name, 'r')
     data = file.read()
     file.close()
