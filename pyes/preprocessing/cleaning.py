@@ -5,6 +5,7 @@ from utils import to_z_score
 
 
 
+
 #*### MIN - MAX SCALING #################################################################################################
 def minmax_scaling(data, min_val = 0, max_val = 1):
     '''
@@ -113,7 +114,7 @@ def normalization(data, type_norm='l1'):
 
 
 #*### OUTLIER DETECTION ##############################################################################################
-def outlier_detection(data, threshold):
+def outlier_detection(data, threshold, method='std'):
     '''
         Detect outliers in the data using z-score method
 
@@ -128,13 +129,17 @@ def outlier_detection(data, threshold):
             np.array    :   boolean array indicating if the data is an outlier or not
     '''
 
-    z_scores = to_z_score(data)
-    return data[z_scores > threshold]
+    outlier = data.copy()
+    if method == 'std':
+        return outlier[outlier > threshold]
+    elif method == 'z-score':
+        z_scores = to_z_score(data)
+        return outlier[z_scores >= threshold]
 
 
 
 #*### OUTLIER REMOVAL #################################################################################################
-def remove_outliers(data, threshold):
+def remove_outliers(data, threshold, method='std'):
     '''
         Remove outliers from the data using z-score method
 
@@ -149,8 +154,12 @@ def remove_outliers(data, threshold):
             np.array    :   data without outliers
     '''
 
-    z_scores = to_z_score(data)
-    return data[z_scores <= threshold]
+    cleaned_data = data.copy()
+    if method == 'std':
+        return cleaned_data[cleaned_data < threshold]
+    elif method == 'z-score':
+        z_scores = to_z_score(data)
+        return cleaned_data[z_scores <= threshold]
 
 
 
@@ -169,10 +178,6 @@ def replace_outliers(data, threshold, replacement_value='mean'):
             replacement_value:   value to replace the outliers
                 float
 
-            method           :   method to use for outlier detection
-                str
-                'z-score' or 'iqr'
-
         Returns:
             np.array        :   data with outliers replaced
     '''
@@ -180,15 +185,14 @@ def replace_outliers(data, threshold, replacement_value='mean'):
     if replacement_value == 'mean': replacement_value = np.mean(data)
     elif replacement_value == 'median': replacement_value = np.median(data)
     
-    elif not replacement_value.isnumeric():
+    elif not type(replacement_value) in [int, float]:
         raise ValueError('replacement_value must be numeric, "mean" or "median"')
 
-    
-    for el in data:
-        if el > threshold:
-            el = replacement_value
+    ## Replacement method
+    cleaned_data = data.copy() 
+    cleaned_data[cleaned_data > threshold] = replacement_value
 
-    return data
+    return cleaned_data
 
 
 
@@ -199,28 +203,11 @@ def replace_outliers(data, threshold, replacement_value='mean'):
 #*### T E S T S ###############################################################################################
 if __name__ == '__main__':
 
-    np.random.seed(42)  # Per riproducibilità
+    vector = np.array([[[1, 3], [5, 12]], [[3, 5], [25, 8]]])
+    soglia = 10
+    sostituto = 10
 
-    # Creazione della matrice di test 10x5
-    test_matrix = np.array([
-        # Colonna 0: Distribuzione normale (outlier positivo)
-        [1.2, 54.1, 0.3, 5.1,    12.3],
-        [-0.5, 63.7, 0.7, 6.7,   14.9],
-        [2.1, 47.3, 0.1, 7.2,     9.8],
-        [0.7, 58.9, 0.9, 100.0,  15.2],   # Outlier colonna 3
-        [-1.3, 42.5, 0.5, 4.9,    8.4],
-        [1.8, 60.0, 0.2, 5.5,  -200.0],   # Outlier colonna 4
-        [0.2, 55.5, 0.8, 6.1,    11.7],
-        [-0.9, 49.8, 0.4, 150.0, 10.1],   # Outlier colonna 3
-        [1.5, 53.2, 0.6, 5.8,    13.5],
-        [2.4, 61.7, 0.3, 6.3,    16.0]
-    ])
-
+    print(replace_outliers(vector, soglia, replacement_value='mean'))
+    print(remove_outliers(vector, soglia))
+    print(outlier_detection(vector, soglia))
     
-
-    data = test_matrix
-    ans = replace_outliers(data, 0.5, replacement_value='mean')
-
-    print(ans)
-
-    print(ans == data)
