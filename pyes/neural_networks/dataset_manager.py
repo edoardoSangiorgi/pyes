@@ -8,47 +8,60 @@ from ..preprocessing.splitting import split_data
 #from ..utils import detect_file_type   #! to be tested
 
 
+'''
+DOCS:
+
+Funzionalità:
+- load data     :    caricare dati grezzi, sia parziali che completi    OK
+- load dataset  :    caricare il dataset completo processato
+- load class    :    caricare una singola classe (parte del dataset)
+- split data    :    suddividere il dataset
+
+- process data  :   fa il preprocessing del dataset
+    - creare le labels
+    - accoppiare dati - labels
+    - normalizzazione
+
+'''
+
 
 class DatasetManager():
 
-    def __init__(self, data_paths, file_type='auto', normalization=None):
+    def __init__(self, data_paths, normalization, file_type='auto' ):
         """
         Args:
-            data_paths: Percorsi file o directory, oppure dati in memoria
-            file_type: 'text', 'image', 'numpy' o 'auto' per rilevamento automatico
-            normalization: Funzione personalizzata per normalizzazione
+            data_paths      :   file paths to the data
+            list or str
+
+            file_type:      :   type of the file
+            str
+                            :   'text'
+                            :   'binary'
+                            :   'auto' (default) #! automatically set binary for now
+                            
+            normalization:  :   normalization function
+            str
         """
         self.data_paths = data_paths
         if file_type == 'auto':
             self.file_type = 'binary'
         else:
             self.file_type = file_type
-        self.normalization_function = normalization or self.default_normalization
-        self.data = None
-        self.labels = None
+        self.normalization_function = normalization
+
+        self._data = None
+        self._dataset = None
+        self._labels = None
         
-        self.load_data()
         
     
 
-    def load_data(self):
+    def load_dataset(self):
         """
-        Carica i dati in memoria
+            Load the entire datset
         """
-
-        load_function = {
-            'text': loaders.load_from_textFile,
-            'binary': loaders.load_from_binaryFile
-            #'numpy': self.load_numpy
-        }
         
-        loaded_data = []
-        for path in self.data_paths:
-                
-            loader = load_function.get(self.file_type)
-            loaded_data.append(loader(path))
-        
-        self.data = self._process_loaded_data(loaded_data)
+        self._dataset = self._process_loaded_data(self.data)
 
 
     
@@ -89,6 +102,58 @@ class DatasetManager():
         
         return np.concatenate(processed, axis=0)
 
+    # - # - # - # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # –
+
+    def load_data(self):
+        '''
+            load raw data from specified file
+        '''
+
+        load_functions = {
+            'text': loaders.load_from_textFile,
+            'binary': loaders.load_from_binaryFile
+        }
+
+        loaded_data = []
+        for file in self.data_paths:
+                
+            loader = load_functions.get(self.file_type)
+            loaded_data.append(loader(file))
+
+        self.data = loaded_data
+
+        return loaded_data
+    
+
+    def data_processing(self):
+        '''
+            - label creation
+            - coupling data - labels
+            - normalizing
+        '''
+
+        #TODO: contitnua qui!
 
 
+        
+
+
+
+    #############################################################################################
+    ## P R O P E R T I E S                                                                      #
+    #############################################################################################
+
+    @property
+    def data(self):
+        if self._data == None:
+            raise AttributeError('No data loaded. Call "load_data()" first. ')
+        
+        return self._data
+        
+    @property
+    def labels(self):
+        if self.labels == None:
+            raise ValueError('No labels are loaded here!')
+        else:
+            return self._labels
     
