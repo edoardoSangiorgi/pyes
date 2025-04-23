@@ -24,7 +24,7 @@ def load_from_binaryFile(filename, path=''):
 #*### LOAD FROM TEXT FILE ########################################################################
 def load_from_textFile(filename, path=''):
     '''
-        Save object to file
+        Load object from a text file
 
         Input:
             filename    :   file name

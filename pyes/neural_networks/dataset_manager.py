@@ -27,7 +27,7 @@ Funzionalità:
 
 class DatasetManager():
 
-    def __init__(self, data_paths, normalization, file_type='auto' ):
+    def __init__(self, data_paths, normalization='std', file_type='auto' ):
         """
         Args:
             data_paths      :   file paths to the data
@@ -42,29 +42,24 @@ class DatasetManager():
             normalization:  :   normalization function
             str
         """
-        self.data_paths = data_paths
+        if isinstance(data_paths, str):
+            self.data_paths = [data_paths]
+        else:
+            self.data_paths = data_paths
         if file_type == 'auto':
             self.file_type = 'binary'
         else:
             self.file_type = file_type
         self.normalization_function = normalization
 
-        self._data = None
+        self._raw_data = None
         self._dataset = None
         self._labels = None
         
         
     
-
-    def load_dataset(self):
-        """
-            Load the entire datset
-        """
-        
-        self._dataset = self._process_loaded_data(self.data)
-
-
-    
+    '''
+    #TODO: fare riferimento nella creazione di dati di train, test, val
     def split_data(self, test_size=0.2, val_size=None, random_state= None):
         """
         Split dati in train/val/test
@@ -76,16 +71,18 @@ class DatasetManager():
         if val_size:
             val_size = val_size / (1 - test_size)  # Corregge il ratio per split annidato
             train_val, test = train_test_split(
-                self.data, test_size=test_size, random_state=random_state)
+                self.raw_data, test_size=test_size, random_state=random_state)
             train, val = train_test_split(
                 train_val, test_size=val_size, random_state=random_state)
             return (train, val, test)
         
-        return train_test_split(self.data, test_size=test_size, random_state=random_state)
+        return train_test_split(self.raw_data, test_size=test_size, random_state=random_state)
+    '''
 
 
 
-    
+    '''
+    #TODO: fare riferimento a funzioni di pre-processing
     def _process_loaded_data(self, raw_data):
         """
         Processamento base per dati caricati
@@ -101,8 +98,11 @@ class DatasetManager():
                 processed[i] = np.expand_dims(arr, axis=-1)
         
         return np.concatenate(processed, axis=0)
+    '''
+
 
     # - # - # - # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # –
+
 
     def load_data(self):
         '''
@@ -120,22 +120,34 @@ class DatasetManager():
             loader = load_functions.get(self.file_type)
             loaded_data.append(loader(file))
 
-        self.data = loaded_data
+        self.raw_data = np.array(loaded_data)
 
         return loaded_data
     
 
-    def data_processing(self):
+    def data_processing(self, num_labels, split_index):
         '''
             - label creation
             - coupling data - labels
             - normalizing
         '''
 
-        #TODO: contitnua qui!
-
+        splitted_data = self.splitter(self.raw_data, split_index)
 
         
+
+        #TODO: continua qui!
+
+
+
+    def splitter(self, data_to_split, split_index):
+
+        splitted_data = []
+        for data in data_to_split:
+
+            splitted_data.append( split_data(data, split_index) )
+
+        return splitted_data
 
 
 
@@ -144,11 +156,16 @@ class DatasetManager():
     #############################################################################################
 
     @property
-    def data(self):
-        if self._data == None:
+    def raw_data(self):
+        if self._raw_data.all() == None:
             raise AttributeError('No data loaded. Call "load_data()" first. ')
         
-        return self._data
+        return self._raw_data
+    
+    @raw_data.setter
+    def raw_data(self, new_data):
+        self._raw_data = new_data
+
         
     @property
     def labels(self):
@@ -156,4 +173,8 @@ class DatasetManager():
             raise ValueError('No labels are loaded here!')
         else:
             return self._labels
+        
+    @labels.setter
+    def labels(self, new_labels):
+        self._labels = new_labels
     
