@@ -1,27 +1,74 @@
+import numpy as np
+
+from pyes.utils import is_even
 
 
-def split_data(vector, indices):
+
+def splitter(data_to_split, split_index='half', dim=0):
     '''
-        splits a vector into many parts as the index
+        Splits data into parts at the given indices.
 
-        Args:
-                vector          :     data to split
-                    array-like
+        Parameters
+        ----------
+        data_to_split   : array-like or int
+            Data to split.
 
-                indices         :    index where split
-                    tuple
-                    list
+        split_index     : tuple, list or int, default = 'half'
+            Positions at which to split.
+            if default the split index will be the half of the data.
+            If the data length is odd, the split index will be the half + 1
 
-        Returns:
-                tuple of array  :   vector slice after split
+        dim     :   int
+                dimension where half has to be found
 
-        Example:
-                In:     [1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 5, 7]
-                Out:    [1, 2], [3, 4, 5], [6, 7], [8, 9]
+        Returns
+        -------
+        tuple of arrays
+            Vector slices after split.
+
     '''
 
-    if type(indices) == int: indices = [indices]
-    if type(indices) == tuple: indices = [index for index in indices]
+    if split_index == 'half':
+        split_index = _find_half(data_to_split, dim)
+
+    splitted_data = []
+    for data in data_to_split:
+
+        splitted_data.append( _split(data, split_index) )
+
+    return splitted_data
+
+
+
+def _split(vector, indices):
+    '''
+        ### Private function — do not use!
+
+        Splits a vector into parts at the given indices.
+
+        Parameters
+        ----------
+        vector : array-like or int
+            Data to split.
+
+        indices : tuple, list or int
+            Positions at which to split.
+
+        Returns
+        -------
+        tuple of arrays
+            Vector slices after split.
+
+        Examples
+        --------
+        >>> _split([1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 5, 7])
+        ([1, 2], [3, 4, 5], [6, 7], [8, 9])
+    '''
+    
+
+
+    if isinstance(indices, int): indices = [indices]
+    if isinstance(indices, tuple): indices = [index for index in indices]
 
     indices = [0] + indices + [len(vector)]
 
@@ -34,3 +81,56 @@ def split_data(vector, indices):
 
 
     return tuple(parts)
+
+
+
+def _find_half(data, dim=0):
+    '''
+        finds the half of a structure
+
+        Parameters
+        ----------
+        data    :   array-like
+            data which the function finds the half index
+
+        dim     :   int
+            dimension where half has to be found
+
+        Returns
+        -------
+        int     :   the index of the half of the data
+                    if the data length is even the index will be the length // 2
+                    if the data length is odd the index will be the (length + 1) // 2
+    '''
+    data = np.array(data)
+
+    if dim >= data.ndim:
+        raise ValueError(f"Invalid dimension {dim} for data {data.ndim}D")
+    
+    data_length = data.shape[dim]
+
+    if data_length == 0:
+        raise ValueError('input data is empty')
+    
+
+    if is_even(data_length):
+        return data_length // 2
+    else:
+        return (data_length + 1) // 2
+
+
+
+
+
+
+#*# T E S T S ########################
+if __name__ == '__main__':
+     
+    vec1 = [1, 2, 3, 4, 5]
+    vec2 = [6, 7, 8, 9, 10]
+
+    data = [vec1, vec2]
+
+    
+    splitted_data = splitter(data, dim=1)
+    print(splitted_data)

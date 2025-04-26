@@ -4,10 +4,11 @@ from pathlib import Path
 import numpy as np
 
 from ..data_io import loaders
-from ..preprocessing.splitting import split_data
+from ..preprocessing.splitting import splitter
 #from ..utils import detect_file_type   #! to be tested
 
-
+#*# prova commento in grassetto
+# prova commento
 '''
 DOCS:
 
@@ -125,35 +126,54 @@ class DatasetManager():
         return loaded_data
     
 
-    def data_processing(self, num_labels, split_index):
+    def data_processing(self, split_index):
         '''
             - label creation
             - coupling data - labels
             - normalizing
         '''
 
-        splitted_data = self.splitter(self.raw_data, split_index)
+        splitted_data = splitter(self.raw_data, split_index)
 
-        
+        all_data = list(np.concatenate(vector) for vector in zip(*splitted_data))
+
+        labels = self.label_build(split_index)
+
+        all_labels = list(np.concatenate(label_vector) for label_vector in zip(*labels))
+
+        for i in range(len(all_data)):
+            all_data[i] = self.normalize(all_data[i])
+
 
         #TODO: continua qui!
 
 
 
-    def splitter(self, data_to_split, split_index):
+    def label_build(self, dimensions):
+        '''
+            Build the label of the dataset
 
-        splitted_data = []
-        for data in data_to_split:
+            Args:
+                dimensions      :   it defines how large must the vector of the label be
+                int
 
-            splitted_data.append( split_data(data, split_index) )
+            Returns:
+                list            :   the list of all the labels
+        '''
 
-        return splitted_data
+        label_list = []
+        label = 0
+        for data in self.data_paths:
+            label = self.label_build(lab_num, dimensions)
+            lab_num += 1
 
+            label_list.append(label)
+        
+        return label_list
 
-
-    #############################################################################################
-    ## P R O P E R T I E S                                                                      #
-    #############################################################################################
+    #############################################################################################*
+    #*# P R O P E R T I E S                                                                     #*
+    #############################################################################################*
 
     @property
     def raw_data(self):

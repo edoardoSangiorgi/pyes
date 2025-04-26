@@ -70,3 +70,15 @@ def detect_file_type(file_paths):
             raise ValueError(f"Mixing file types: {detected_type} e {file_type} in {file_path}")
     
     return detected_type
+
+
+
+def is_even(number):
+
+    if not isinstance(number, int):
+        raise ValueError('number must be int')
+    
+    if number % 2 == 0:
+        return True
+    else:
+        return False
