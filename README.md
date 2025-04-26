@@ -7,3 +7,6 @@ A personal library of utils functions and classes for data processing
 - Deep Learning
 
 ## Structure
+
+Examples
+--------
