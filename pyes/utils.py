@@ -1,8 +1,13 @@
+import os
+import mimetypes
+from typing import Tuple, Dict
+
 import numpy as np
 from pathlib import Path
 
 
-def to_z_score(data):
+
+def to_z_score(data): # tested
     '''
         convert to z-score
 
@@ -21,62 +26,111 @@ def to_z_score(data):
 
 
 
-def detect_file_type(file_paths):
+def detect_file_type(file_paths): # tested
     """
-        ## #! TO BE TESTED
-        Rileva e verifica il tipo di file coerente da una lista di percorsi
-        
-        Args:
-            file_paths: Lista di percorsi a file da analizzare
-            
-        Returns:
-            Tipo di file comune a tutti i percorsi (text, image, numpy, o unknown)
-            
-        Raises:
-            ValueError: Se vengono rilevati tipi misti o percorsi non validi
+        Detects the MIME type of one or more files based on their extensions.
+
+        Parameters
+        ----------
+        file_paths : str or list of str
+            Path or list of paths to the files to analyze.
+
+        Returns
+        -------
+        list of str
+            List of detected file types (MIME types or simplified labels like 'binary').
+
+        Raises
+        ------
+        ValueError
+            If `file_paths` is empty.
+
+        Notes
+        -----
+        Files with unknown extensions default to 'application/octet-stream',
+        which is then converted to 'binary' for simplicity.
     """
 
     if not file_paths:
         raise ValueError("File paths cannot be empty")
+    
+    if isinstance(file_paths, str): file_paths = [file_paths]
         
     
-    EXTENSION_MAP = {
-        'text': {'.txt', '.csv', '.tsv', '.json'},
-        'binary': {'.bin', '.dat'},
-        'image': {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff'},
-        'numpy': {'.npy', '.npz'},
-        'audio': {'.wav', '.mp3', '.flac'},
-        'video': {'.mp4', '.avi', '.mov'}
+    type_list = []
+    for file in file_paths:
+
+        file_type, _ = _detect_file_type_by_ext(file)
+        if file_type == 'application/octet-stream': file_type = 'binary'
+        type_list.append(file_type)
+
+
+    return type_list
+
+
+
+def _detect_file_type_by_ext(file_path): # tested
+    """
+        Determines the MIME type of a file based on its extension.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the file whose MIME type is to be determined.
+
+        Returns
+        -------
+        tuple of (str or None, str or None)
+            - MIME type string if detected, otherwise 'application/octet-stream'.
+            - File extension used for detection or guessed by the mimetypes module.
+
+        Notes
+        -----
+        This function first checks against a predefined extension map.
+        If the extension is not found, it attempts to guess using the `mimetypes` module.
+    """
+
+    EXTENSION_MAP: Dict[str, str] = {
+        '.txt':   'text/plain',
+        '.md':    'text/markdown',
+        '.csv':   'text/csv',
+        '.json':  'application/json',
+        '.xml':   'application/xml',
+        '.html':  'text/html',
+        '.py':    'text/x-python',
+        '.java':  'text/x-java-source',
+        '.c':     'text/x-c',
+        '.cpp':   'text/x-c++',
+        '.js':    'application/javascript',
+        '.jpg':   'image/jpeg',
+        '.jpeg':  'image/jpeg',
+        '.png':   'image/png',
+        '.gif':   'image/gif',
+        '.pdf':   'application/pdf',
+        '.zip':   'application/zip',
+        '.mp3':   'audio/mpeg',
+        '.wav':   'audio/wav',
     }
-    
-    # Inversione della mappatura per lookup veloce
-    TYPE_FROM_EXT = {ext: ftype for ftype, exts in EXTENSION_MAP.items() for ext in exts}
-    
-    detected_type = None
-    
-    for file_path in file_paths:
 
-        if not Path(file_path).exists():
-            raise FileNotFoundError(f"The file {file_path} don't exist")
-            
-        ext = Path(file_path).suffix.lower()
-        if not ext:
-            raise ValueError(f"File without extension: {file_path}")
-        
-        file_type = TYPE_FROM_EXT.get(ext, 'unknown')
-        
-        if detected_type is None:
-            detected_type = file_type
-            if file_type == 'unknown':
-                raise ValueError(f"Type not supported: {ext} in {file_path}")
-        elif file_type != detected_type:
-            raise ValueError(f"Mixing file types: {detected_type} e {file_type} in {file_path}")
-    
-    return detected_type
+    _, ext = os.path.splitext(file_path.lower())
+
+    if ext is '':
+        ext = None
+    elif ext in EXTENSION_MAP:
+        return EXTENSION_MAP[ext], ext
+
+
+    mime, _ = mimetypes.guess_type(file_path)
+    if mime:
+        guessed_ext = mimetypes.guess_extension(mime) or ext
+        return mime, guessed_ext
+
+
+    return 'application/octet-stream', ext
 
 
 
-def is_even(number):
+def is_even(number): # tested
     '''
         check if a number is even
 
@@ -102,3 +156,14 @@ def is_even(number):
         return True
     else:
         return False
+    
+
+
+
+#*### T E S T ########################################################
+if __name__ == '__main__':
+
+    file1 = 'testo.txt'
+    file2 = 'binario.bin'
+
+    print('END', end='\n\n')

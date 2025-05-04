@@ -6,7 +6,7 @@ import keras
 
 from ..data_io import loaders
 from ..preprocessing.splitting import splitter
-#from pyes.utils import detect_file_type   #! to be tested
+from ..utils import detect_file_type 
 
 
 '''
@@ -72,7 +72,7 @@ class DatasetManager():
         else:
             self.data_paths = data_paths
         if file_type == 'auto':
-            self.file_type = 'binary'
+            self.file_type = detect_file_type(data_paths)
         else:
             self.file_type = file_type
         self.normalization_function = normalization
