@@ -5,28 +5,26 @@ from ..utils import to_z_score
 
 
 
-
 #*### MIN - MAX SCALING #################################################################################################
-def minmax_scaling(data, min_val = 0, max_val = 1):
-    '''
-        Scale data to a given range
+def minmax_scaling(data, min_val=0, max_val=1):
+    """
+        Scale data to a specified range.
 
-        Args:
-            data        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like, shape (n_samples, n_features)
+            Input data to be scaled.
+        min_val : float or int, optional (default=0)
+            Desired lower bound of the transformed data.
+        max_val : float or int, optional (default=1)
+            Desired upper bound of the transformed data.
 
-            min_val     :   minimum value of the range
-                float
-                int
+        Returns
+        -------
+        scaled_data : ndarray, shape (n_samples, n_features)
+            Transformed data scaled to the interval [min_val, max_val].
+    """
 
-            max_val     :   maximum value of the range
-                float
-                int
-
-        Returns:
-            np.array    :   data scaled to the range [min_val, max_val]
-    '''
-    
     scaler = MinMaxScaler(feature_range=(min_val, max_val))
     return scaler.fit_transform(data)
 
@@ -34,16 +32,19 @@ def minmax_scaling(data, min_val = 0, max_val = 1):
 
 #*### MAX ABS SCALING #################################################################################################
 def maxabs_scaling(data):
-    '''
-        Scale data in order to have max abs value equal to 1
+    """
+        Scale data by its maximum absolute value.
 
-        Args:
-            data        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like, shape (n_samples, n_features)
+            Input data to be scaled.
 
-        Returns:
-            np.array    : scaled data
-    '''
+        Returns
+        -------
+        scaled_data : ndarray, shape (n_samples, n_features)
+            Transformed data where each feature is divided by its maximum absolute value.
+    """
 
     scaler = MaxAbsScaler()
     return scaler.fit_transform(data)
@@ -52,31 +53,40 @@ def maxabs_scaling(data):
 
 #*### STANDARD SCALING #################################################################################################
 def std_norm(data, dim='1D'):
-    '''
-        Nomalize a list of vector 
+    """
+        Normalize data to zero mean and unit variance.
 
-        Input:  
-            data            :   np.array of N array with Nf features. It can be 1D o 2D
-                np.array        input shape (N, dim_x, dim_y)
-            
-            dim             :   specify the dimension of the input data
-        
-        Return:
-            normalized      :   input data normalized: N vector of Nf features, each with mean=0 and var=1
-                np.array
-    '''
+        Parameters
+        ----------
+        data : ndarray
+            Input array. Can be 1D or 2D:
+            - If dim='1D', data is 1D or 2D with shape (n_features, n_samples).
+            - If dim='2D', data is 3D with shape (n_samples, dim_x, dim_y).
+        dim : {'1D', '2D'}, optional (default='1D')
+            Dimension along which to apply normalization.
+
+        Returns
+        -------
+        normalized : ndarray
+            Normalized data with mean=0 and variance=1 along the specified dimension.
+
+        Raises
+        ------
+        ValueError
+            If `dim` is not '1D' or '2D'.
+    """
 
     scaler = StandardScaler()
 
     if dim == '1D':
         normalized = scaler.fit_transform(data.T).T
     elif dim == '2D':
-        normalized = scaler.fit_transform( data.reshape( (data.shape[0],-1) ).T ).T
-        normalized = normalized.reshape(data.shape)
+        reshaped = data.reshape((data.shape[0], -1))
+        normalized_flat = scaler.fit_transform(reshaped.T).T
+        normalized = normalized_flat.reshape(data.shape)
         normalized = np.expand_dims(normalized, axis=3)
-
     else:
-        raise ValueError('Invalid dim. Dim must be "1D" or "2D".')
+        raise ValueError("Invalid dim. Dim must be '1D' or '2D'.")
 
     return normalized
 
@@ -84,30 +94,47 @@ def std_norm(data, dim='1D'):
 
 #*### WHITENING #################################################################################################
 def whitening(data):
-    '''
-        Apply whitening to the data. It makes the data uncorrelated and have unit variance 
+    """
+        Apply whitening transformation to decorrelate features and set unit variance.
 
-        Args:
-            data        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like, shape (n_samples, n_features)
+            Input data to whiten.
 
-        Returns:
-            np.array    :   whitened data
-    '''
+        Returns
+        -------
+        whitened_data : ndarray, shape (n_samples, n_features)
+            Transformed data with uncorrelated features and unit variance.
+    """
 
-    mu = data.mean(0)
-    sigma = np.cov(data.T)
-    evals, evecs = np.linalg.eigh(sigma)
-    w = evecs / np.sqrt(evals)
-    data = (data - mu) @ w
+    mu = data.mean(axis=0)
+    cov = np.cov(data.T)
+    evals, evecs = np.linalg.eigh(cov)
+    whitening_matrix = evecs / np.sqrt(evals)
+    whitened_data = (data - mu) @ whitening_matrix
 
-    return data
+    return whitened_data
 
 
 
 #*### NORMALIZATION #################################################################################################
 def normalization(data, type_norm='l1'):
+    """
+        Normalize samples individually to unit norm.
 
+        Parameters
+        ----------
+        data : array-like, shape (n_samples, n_features)
+            Input data to normalize.
+        type_norm : {'l1', 'l2', 'max'}, optional (default='l1')
+            Norm to use for normalization.
+
+        Returns
+        -------
+        normalized_data : ndarray, shape (n_samples, n_features)
+            Transformed data where each sample has unit norm.
+    """
     normalizer = Normalizer(norm=type_norm)
     return normalizer.fit_transform(data)
 
@@ -115,83 +142,103 @@ def normalization(data, type_norm='l1'):
 
 #*### OUTLIER DETECTION ##############################################################################################
 def outlier_detection(data, threshold, method='std'):
-    '''
-        Detect outliers in the data using z-score method
+    """
+        Detect outliers in the data using specified method.
 
-        Args:
-            data        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like
+            Input data for outlier detection.
+        threshold : float
+            Threshold value for determining outliers.
+        method : {'std', 'z-score'}, optional (default='std')
+            Method to use for detection:
+            - 'std': return values greater than `threshold`.
+            - 'z-score': compute z-scores and return values with |z| >= `threshold`.
 
-            threshold    :   threshold for z-score
-                float
-
-        Returns:
-            np.array    :   boolean array indicating if the data is an outlier or not
-    '''
-
-    outlier = data.copy()
+        Returns
+        -------
+        outliers : ndarray
+            Array of detected outlier values.
+    """
     if method == 'std':
-        return outlier[outlier > threshold]
+        return data[data > threshold]
     elif method == 'z-score':
         z_scores = to_z_score(data)
-        return outlier[z_scores >= threshold]
+        return data[z_scores >= threshold]
+    else:
+        raise ValueError("Invalid method. Choose 'std' or 'z-score'.")
 
 
 
 #*### OUTLIER REMOVAL #################################################################################################
 def remove_outliers(data, threshold, method='std'):
-    '''
-        Remove outliers from the data using z-score method
+    """
+        Remove outliers from the data using specified method.
 
-        Args:
-            data        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like
+            Input data from which to remove outliers.
+        threshold : float
+            Threshold value for determining outliers.
+        method : {'std', 'z-score'}, optional (default='std')
+            Method to use for removal:
+            - 'std': remove values greater than `threshold`.
+            - 'z-score': compute z-scores and remove values with |z| > `threshold`.
 
-            threshold    :   threshold for z-score
-                float
-
-        Returns:
-            np.array    :   data without outliers
-    '''
-
-    cleaned_data = data.copy()
+        Returns
+        -------
+        cleaned_data : ndarray
+            Data with outliers removed.
+    """
     if method == 'std':
-        return cleaned_data[cleaned_data < threshold]
+        return data[data < threshold]
     elif method == 'z-score':
         z_scores = to_z_score(data)
-        return cleaned_data[z_scores <= threshold]
+        return data[z_scores <= threshold]
+    else:
+        raise ValueError("Invalid method. Choose 'std' or 'z-score'.")
 
 
 
 #*### OUTLIER REPLACEMENT ############################################################################################
 def replace_outliers(data, threshold, replacement_value='mean'):
-    '''
-        Replace outliers in the data using specified method
+    """
+        Replace outliers in the data with a specified value.
 
-        Args:
-            data            :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data : array-like
+            Input data containing potential outliers.
+        threshold : float
+            Threshold for determining outliers (values > threshold are replaced).
+        replacement_value : {'mean', 'median'} or float, optional (default='mean')
+            Value to replace outliers:
+            - 'mean': global mean of `data`.
+            - 'median': global median of `data`.
+            - float: specified constant value.
 
-            threshold        :   threshold for z-score
-                float
+        Returns
+        -------
+        replaced_data : ndarray
+            Data with outliers replaced.
 
-            replacement_value:   value to replace the outliers
-                float
+        Raises
+        ------
+        ValueError
+            If `replacement_value` is not 'mean', 'median', or numeric.
+    """
 
-        Returns:
-            np.array        :   data with outliers replaced
-    '''
+    if replacement_value == 'mean':
+        replacement_value = np.mean(data)
+    elif replacement_value == 'median':
+        replacement_value = np.median(data)
+    elif not isinstance(replacement_value, (int, float)):
+        raise ValueError("replacement_value must be numeric, 'mean', or 'median'.")
 
-    if replacement_value == 'mean': replacement_value = np.mean(data)
-    elif replacement_value == 'median': replacement_value = np.median(data)
-    
-    elif not type(replacement_value) in [int, float]:
-        raise ValueError('replacement_value must be numeric, "mean" or "median"')
-
-    ## Replacement method
-    cleaned_data = data.copy() 
+    cleaned_data = data.copy()
     cleaned_data[cleaned_data > threshold] = replacement_value
-
     return cleaned_data
 
 

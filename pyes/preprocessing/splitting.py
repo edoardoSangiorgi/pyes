@@ -1,6 +1,6 @@
 import numpy as np
 
-from pyes.utils import is_even
+from ..utils import is_even
 
 
 
@@ -65,8 +65,6 @@ def _split(vector, indices):
         ([1, 2], [3, 4, 5], [6, 7], [8, 9])
     '''
     
-
-
     if isinstance(indices, int): indices = [indices]
     if isinstance(indices, tuple): indices = [index for index in indices]
 
@@ -86,6 +84,7 @@ def _split(vector, indices):
 
 def _find_half(data, dim=0):
     '''
+        ### Private function - do no use!
         finds the half of a structure
 
         Parameters
@@ -102,6 +101,7 @@ def _find_half(data, dim=0):
                     if the data length is even the index will be the length // 2
                     if the data length is odd the index will be the (length + 1) // 2
     '''
+
     data = np.array(data)
 
     if dim >= data.ndim:

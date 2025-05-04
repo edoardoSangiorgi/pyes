@@ -2,13 +2,13 @@ from typing import List, Union, Optional, Callable
 from pathlib import Path
 
 import numpy as np
+import keras
 
 from ..data_io import loaders
 from ..preprocessing.splitting import splitter
-#from ..utils import detect_file_type   #! to be tested
+#from pyes.utils import detect_file_type   #! to be tested
 
-#*# prova commento in grassetto
-# prova commento
+
 '''
 DOCS:
 
@@ -28,21 +28,45 @@ Funzionalità:
 
 class DatasetManager():
 
-    def __init__(self, data_paths, normalization='std', file_type='auto' ):
-        """
-        Args:
-            data_paths      :   file paths to the data
-            list or str
+    """
+        Gestione del caricamento e preprocessing di dataset.
 
-            file_type:      :   type of the file
-            str
-                            :   'text'
-                            :   'binary'
-                            :   'auto' (default) #! automatically set binary for now
-                            
-            normalization:  :   normalization function
-            str
-        """
+        Parameters
+        ----------
+        data_paths : str or list of str
+            Percorsi ai file di dati (raw) da caricare.
+        normalization : str or Callable, optional (default='std')
+            Funzione o tipo di normalizzazione da applicare ai dati.
+        file_type : {'auto', 'text', 'binary'}, optional (default='auto')
+            Tipo di file da caricare. Se 'auto', usa 'binary'.
+
+        Attributes
+        ----------
+        data_paths : list of str
+            Lista di percorsi ai file.
+        file_type : str
+            Tipo di file effettivamente usato ('text' o 'binary').
+        normalization_function : Union[str, Callable]
+            Funzione di normalizzazione selezionata.
+        raw_data : np.ndarray or None
+            Dati grezzi caricati; None finché non si chiama `load_data`.
+        dataset : Any
+            Risultato del preprocessing (non ancora implementato).
+        labels : Any
+            Etichette generate per il dataset (non ancora implementato).
+
+        Methods
+        -------
+        load_data()
+            Carica i dati raw da file e li memorizza in `raw_data`.
+        data_processing(split_index)
+            Esegue splitting, creazione etichette e normalizzazione dei dati.
+        label_build(dimensions)
+            Costruisce la lista di etichette per il dataset.
+    """
+
+    def __init__(self, data_paths, normalization='std', file_type='auto' ):
+        
         if isinstance(data_paths, str):
             self.data_paths = [data_paths]
         else:
@@ -56,69 +80,28 @@ class DatasetManager():
         self._raw_data = None
         self._dataset = None
         self._labels = None
-        
-        
-    
-    '''
-    #TODO: fare riferimento nella creazione di dati di train, test, val
-    def split_data(self, test_size=0.2, val_size=None, random_state= None):
-        """
-        Split dati in train/val/test
-        Restituisce tuple di array (train, val, test) o (train, test)
-        """
-        
-        from sklearn.model_selection import train_test_split
-        
-        if val_size:
-            val_size = val_size / (1 - test_size)  # Corregge il ratio per split annidato
-            train_val, test = train_test_split(
-                self.raw_data, test_size=test_size, random_state=random_state)
-            train, val = train_test_split(
-                train_val, test_size=val_size, random_state=random_state)
-            return (train, val, test)
-        
-        return train_test_split(self.raw_data, test_size=test_size, random_state=random_state)
-    '''
 
-
-
-    '''
-    #TODO: fare riferimento a funzioni di pre-processing
-    def _process_loaded_data(self, raw_data):
-        """
-        Processamento base per dati caricati
-        """
-
-        # Converti liste e formati diversi in numpy array
-        processed = [np.array(d) for d in raw_data]
-        
-        # Uniforma le dimensioni aggiungendo dimensioni singleton se necessario
-        max_dim = max(arr.ndim for arr in processed)
-        for i, arr in enumerate(processed):
-            if arr.ndim < max_dim:
-                processed[i] = np.expand_dims(arr, axis=-1)
-        
-        return np.concatenate(processed, axis=0)
-    '''
-
-
-    # - # - # - # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # – # –
-
-
-    def load_data(self):
-        '''
-            load raw data from specified file
-        '''
-
-        load_functions = {
+        self._load_functions = {
             'text': loaders.load_from_textFile,
             'binary': loaders.load_from_binaryFile
         }
+        
+        
+        
+    def load_data(self):
+        '''
+            Loads raw data from specified paths.
+
+            Returns
+            -------
+            loaded_data : list of ndarray
+                
+        '''
 
         loaded_data = []
         for file in self.data_paths:
                 
-            loader = load_functions.get(self.file_type)
+            loader = self._load_functions.get(self.file_type)
             loaded_data.append(loader(file))
 
         self.raw_data = np.array(loaded_data)
@@ -126,11 +109,28 @@ class DatasetManager():
         return loaded_data
     
 
-    def data_processing(self, split_index):
+
+    def data_processing(self, split_index, data_shape):
         '''
-            - label creation
-            - coupling data - labels
-            - normalizing
+            Splitta, crea etichette e normalizza il dataset.
+
+            Parameters
+            ----------
+            split_index :   int or list of int
+                Indici per suddividere i dati in train/val/test.
+
+            data_shape  :   tuple
+                the shape of the final data
+
+            Returns
+            -------
+            None
+
+            Notes
+            -----
+            - Usa `splitter` per suddividere `raw_data`.
+            - `label_build` genera etichette.
+            - Applica la normalizzazione a ciascun sottoinsieme.
         '''
 
         splitted_data = splitter(self.raw_data, split_index)
@@ -143,33 +143,42 @@ class DatasetManager():
 
         for i in range(len(all_data)):
             all_data[i] = self.normalize(all_data[i])
+            all_data[i]= np.reshape(all_data[i], data_shape).astype('float32')
+
+        for i in range(len(all_labels)):
+            all_labels[i] = keras.utils.to_categorical(all_labels[i], self.num_classes)
 
 
-        #TODO: continua qui!
+        return all_data, all_labels
 
 
 
     def label_build(self, dimensions):
         '''
-            Build the label of the dataset
+            Costruisce gli array di etichette per ciascuna classe.
 
-            Args:
-                dimensions      :   it defines how large must the vector of the label be
-                int
+            Parameters
+            ----------
+            dimensions : int
+                Numero di campioni per classe o dimensione del vettore etichetta.
 
-            Returns:
-                list            :   the list of all the labels
+            Returns
+            -------
+            label_list : list of ndarray
+                Lista di array di interi, ciascuno contenente le etichette per una classe.
         '''
 
         label_list = []
         label = 0
-        for data in self.data_paths:
+        for _ in self.data_paths:
             label = self.label_build(lab_num, dimensions)
             lab_num += 1
 
             label_list.append(label)
         
         return label_list
+
+
 
     #############################################################################################*
     #*# P R O P E R T I E S                                                                     #*
@@ -197,4 +206,3 @@ class DatasetManager():
     @labels.setter
     def labels(self, new_labels):
         self._labels = new_labels
-    

@@ -2,41 +2,49 @@ import dill
 
 #*### LOAD FROM BINARY FILE ########################################################################
 def load_from_binaryFile(filename, path=''):
-    '''
-        Load object from a binary file
+    """
+        Load a Python object from a binary file using dill.
 
-        Input:
-            filename    :   file name
-            str
-                
-            path        :   path where file is saved
-            str
-    '''
+        Parameters
+        ----------
+        filename : str
+            Name of the binary file.
+        path : str, optional
+            Directory path where the file is stored. Default is current directory.
 
-    name = path + filename
-    file =  open( name, 'rb')
-    obj = dill.load(file)
-    file.close()
+        Returns
+        -------
+        obj : object
+            The Python object deserialized from the file.
+    """
 
+    full_path = path + filename
+    with open(full_path, 'rb') as file:
+        obj = dill.load(file)
+        
     return obj
 
 
 #*### LOAD FROM TEXT FILE ########################################################################
 def load_from_textFile(filename, path=''):
-    '''
-        Load object from a text file
+    """
+        Load content from a text file.
 
-        Input:
-            filename    :   file name
-            str
-                
-            path        :   path where file is saved
-            str
-        '''
+        Parameters
+        ----------
+        filename : str
+            Name of the text file.
+        path : str, optional
+            Directory path where the file is stored. Default is current directory.
 
-    name = path + filename
-    file =  open( name, 'r')
-    data = file.read()
-    file.close()
+        Returns
+        -------
+        data : str
+            The entire contents of the text file.
+    """
+
+    full_path = path + filename
+    with open(full_path, 'r') as file:
+        data = file.read()
 
     return data

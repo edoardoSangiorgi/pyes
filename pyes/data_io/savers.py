@@ -2,41 +2,45 @@ import dill
 
 #*### SAVE TO BINARY FILE ########################################################################
 def save_to_binaryFile(self, obj, filename, path=''):
-    '''
-        Save object to a file
+    """
+        Serialize and save a Python object to a binary file using dill.
 
-        Input:
-            obj         :   object to save (e.g. object form class, list, np.array, dict, ...)
-            object
+        Parameters
+        ----------
+        obj : object
+            Python object to serialize (e.g. istanza di classe, list, np.array, dict, …).
+        filename : str
+            Name of the target binary file.
+        path : str, optional
+            Directory path in cui salvare il file. Default è la directory corrente.
 
-            filename    :   file name
-            str
-                    
-            path        :   path where file is saved
-            str
-        '''
+        Returns
+        -------
+        None
+    """
+    full_path = path + filename
+    with open(full_path, "wb") as file:
+        dill.dump(obj, file)
 
-    name = path + filename
-    file = open(name, "wb")
-    dill.dump( obj, file)  # file
-    file.close()
-
-    
 
 #*### SAVE TO TEXT FILE ########################################################################
 def save_to_textFile(self, txt, filename, path=''):
-    '''
-        Save object to file
+    """
+        Save a text string to a plain-text file.
 
-        Input:
-            txt         :   text to save
-                object
-            filename    :   file name
-                str
-            
-            path        :   path where file is saved
-                str
-    '''
+        Parameters
+        ----------
+        txt : str
+            Contenuto testuale da salvare nel file.
+        filename : str
+            Nome del file di destinazione.
+        path : str, optional
+            Directory path in cui salvare il file. Default è la directory corrente.
 
-    with open(path+filename, 'w') as f:
-        print(txt, file=f)
+        Returns
+        -------
+        None
+    """
+    full_path = path + filename
+    with open(full_path, "w") as file:
+        file.write(txt)

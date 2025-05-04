@@ -6,21 +6,24 @@ def to_z_score(data):
     '''
         convert to z-score
 
-        Args:
-            dara        :   array of N array with Nf features
-                np.array
+        Parameters
+        ----------
+        data    :   array-like
+            array of N array with Nf features
 
-        Returns:
-            np.array    :   z-score data
+        Returns
+        -------
+        np.array    :   z-score data
     '''
 
+    data = np.array(data)
     return np.abs((data - np.mean(data)) / np.std(data))
 
 
 
 def detect_file_type(file_paths):
     """
-        #! TO BE TESTED
+        ## #! TO BE TESTED
         Rileva e verifica il tipo di file coerente da una lista di percorsi
         
         Args:
@@ -74,6 +77,23 @@ def detect_file_type(file_paths):
 
 
 def is_even(number):
+    '''
+        check if a number is even
+
+        Parameters
+        ----------
+        number  :   int
+            the input number, must be int
+
+        Returns
+        -------
+        boolean :   True if number is even, False if number is odd
+
+        Raises
+        ------
+        ValueError
+            if given number is not int
+    '''
 
     if not isinstance(number, int):
         raise ValueError('number must be int')
