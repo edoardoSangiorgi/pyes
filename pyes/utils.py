@@ -1,12 +1,12 @@
 import os
 import mimetypes
-from typing import Tuple, Dict
+from typing import Dict
 
 import numpy as np
 from pathlib import Path
 
 
-
+#*## T O  Z  S C O R E ######################################################
 def to_z_score(data): # tested
     '''
         convert to z-score
@@ -25,7 +25,7 @@ def to_z_score(data): # tested
     return np.abs((data - np.mean(data)) / np.std(data))
 
 
-
+#*## D E T E C T  F I L E  T Y P E ##########################################
 def detect_file_type(file_paths): # tested
     """
         Detects the MIME type of one or more files based on their extensions.
@@ -67,10 +67,9 @@ def detect_file_type(file_paths): # tested
 
     return type_list
 
-
-
 def _detect_file_type_by_ext(file_path): # tested
     """
+        ### Private function - do not use!
         Determines the MIME type of a file based on its extension.
 
         Parameters
@@ -129,7 +128,7 @@ def _detect_file_type_by_ext(file_path): # tested
     return 'application/octet-stream', ext
 
 
-
+#*## I S  E V E N ########################################################### 
 def is_even(number): # tested
     '''
         check if a number is even
@@ -156,7 +155,38 @@ def is_even(number): # tested
         return True
     else:
         return False
+
+
+#*## V A L U E  T O  V E C T O R ############################################
+def value_to_vector(value, dimension=None): # tested
+    '''
+        Create an N-dimensional vector filled with a specified value
+
+        Parameters
+        ----------
+        value : object
+            The value to populate the vector with. Can be of any type.
+        dimensions : int or list of int
+            List specifying the size of each dimension.
+            - Empty list [] returns a 0-dimensional (scalar) value
+            - [n] returns a 1D list of length n
+            - [n, m] returns a 2D list (n x m matrix)
+
+        Returns
+        -------
+        nested_list : list
+            N-dimensional list structure filled with the specified value.
+            The nesting depth equals the length of the dimensions parameter.
+
+    '''
+    if not dimension: return value
+    if isinstance(dimension, int): dimension = [dimension]
+    vector =  [
+        value_to_vector(value, dimension[1:]) for _ in range(dimension[0])
+    ]
     
+    return np.array(vector)
+
 
 
 

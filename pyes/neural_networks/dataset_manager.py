@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import keras
+import tensorflow as tf
 
 from ..data_io import loaders
 from ..preprocessing.splitting import splitter
@@ -87,7 +88,7 @@ class DatasetManager():
         }
         
         
-        
+    #*## L O A D  D A T A ################################################# 
     def load_data(self):
         '''
             Loads raw data from specified paths.
@@ -109,7 +110,7 @@ class DatasetManager():
         return loaded_data
     
 
-
+    #*##  D A T A  P R O C E S S I N G ####################################
     def data_processing(self, split_index, data_shape):
         '''
             Splitta, crea etichette e normalizza il dataset.
@@ -137,7 +138,7 @@ class DatasetManager():
 
         all_data = list(np.concatenate(vector) for vector in zip(*splitted_data))
 
-        labels = self.label_build(split_index)
+        labels = self.build_label(split_index)
 
         all_labels = list(np.concatenate(label_vector) for label_vector in zip(*labels))
 
@@ -146,14 +147,14 @@ class DatasetManager():
             all_data[i]= np.reshape(all_data[i], data_shape).astype('float32')
 
         for i in range(len(all_labels)):
-            all_labels[i] = keras.utils.to_categorical(all_labels[i], self.num_classes)
+            all_labels[i] = keras.utils.to_categorical(all_labels[i], self.labels)
 
 
         return all_data, all_labels
 
 
-
-    def label_build(self, dimensions):
+    #*## B U I L D  L A B E L #############################################
+    def build_label(self, dimensions):
         '''
             Costruisce gli array di etichette per ciascuna classe.
 
@@ -171,12 +172,40 @@ class DatasetManager():
         label_list = []
         label = 0
         for _ in self.data_paths:
-            label = self.label_build(lab_num, dimensions)
+            label = self.build_label(lab_num, dimensions) #TODO: fix using utils.value_to_vector
             lab_num += 1
 
             label_list.append(label)
         
         return label_list
+
+
+
+    def to_tf_dataset(self, input_data, buffer_size=50, batch_size=20):
+        '''
+            build the dataset for specific data
+
+            Input:
+                    input_data:     the data for the dataset
+                    array-like 
+
+            Ouput:
+                    dataset:        completed dateset
+                    tf.Dataset
+
+            Note:
+            - *input_data shape must be correct*
+            - *labels must be already normalized*
+        '''
+
+        if type(input_data) != tuple:
+            dataset = tf.data.Dataset.from_tensor_slices((input_data))
+        else:
+            if len(input_data) != 2: raise ValueError('expected 2 values but ', len(input_data), ' where given')
+            data, labels = input_data
+            dataset = tf.data.Dataset.from_tensor_slices((data, labels))
+        
+        self._dataset = dataset.shuffle(buffer_size=buffer_size).batch(batch_size)
 
 
 
@@ -206,3 +235,11 @@ class DatasetManager():
     @labels.setter
     def labels(self, new_labels):
         self._labels = new_labels
+
+    
+    @property
+    def dataset(self):
+        if self._dataset == None:
+            raise ValueError('No dataset loaded. Call to_tf_dataset() first.')
+        
+        return self._dataset
