@@ -5,9 +5,9 @@ import numpy as np
 import keras
 import tensorflow as tf
 
-from ..data_io import loaders
+from ..data_io import _loaders
 from ..preprocessing.splitting import splitter
-from ..utils import detect_file_type 
+from ..data_io.file_manager import detect_file_type 
 
 
 '''
@@ -83,8 +83,8 @@ class DatasetManager():
         self._labels = None
 
         self._load_functions = {
-            'text': loaders.load_from_textFile,
-            'binary': loaders.load_from_binaryFile
+            'text': _loaders.load_from_textFile,
+            'binary': _loaders.load_from_binaryFile
         }
         
         
