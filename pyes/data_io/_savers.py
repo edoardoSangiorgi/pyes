@@ -1,7 +1,7 @@
 import dill
 
 #*### SAVE TO BINARY FILE ########################################################################
-def save_to_binaryFile(self, obj, filename, path=''):
+def save_to_binaryFile(obj, filename, path=''):
     """
         Serialize and save a Python object to a binary file using dill.
 
@@ -24,7 +24,7 @@ def save_to_binaryFile(self, obj, filename, path=''):
 
 
 #*### SAVE TO TEXT FILE ########################################################################
-def save_to_textFile(self, txt, filename, path=''):
+def save_to_textFile(txt, filename, path=''):
     """
         Save a text string to a plain-text file.
 

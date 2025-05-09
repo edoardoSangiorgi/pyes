@@ -1,10 +1,10 @@
 import numpy as np
 
-from ..utils import is_even
+from pyes.utils import is_even
 
 
 
-def splitter(data_to_split, split_index='half', dim=0):
+def splitter(data_to_split, split_index='half', axis=0):
     '''
         Splits data into parts at the given indices.
 
@@ -18,7 +18,7 @@ def splitter(data_to_split, split_index='half', dim=0):
             if default the split index will be the half of the data.
             If the data length is odd, the split index will be the half + 1
 
-        dim     :   int
+        axis     :   int
                 dimension where half has to be found
 
         Returns
@@ -29,7 +29,7 @@ def splitter(data_to_split, split_index='half', dim=0):
     '''
 
     if split_index == 'half':
-        split_index = _find_half(data_to_split, dim)
+        split_index = _find_half(data_to_split, axis)
 
     splitted_data = []
     for data in data_to_split:
@@ -82,7 +82,7 @@ def _split(vector, indices):
 
 
 
-def _find_half(data, dim=0):
+def _find_half(data, axis=0):
     '''
         ### Private function - do no use!
         finds the half of a structure
@@ -92,7 +92,7 @@ def _find_half(data, dim=0):
         data    :   array-like
             data which the function finds the half index
 
-        dim     :   int
+        axis     :   int
             dimension where half has to be found
 
         Returns
@@ -104,10 +104,10 @@ def _find_half(data, dim=0):
 
     data = np.array(data)
 
-    if dim >= data.ndim:
-        raise ValueError(f"Invalid dimension {dim} for data {data.ndim}D")
+    if axis >= data.ndim:
+        raise ValueError(f"Invalid dimension {axis} for data {data.ndim}D")
     
-    data_length = data.shape[dim]
+    data_length = data.shape[axis]
 
     if data_length == 0:
         raise ValueError('input data is empty')

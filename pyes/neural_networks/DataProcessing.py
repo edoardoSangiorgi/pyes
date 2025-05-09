@@ -5,7 +5,12 @@ import tensorflow as tf
 from Normalization_class import Normalization
 
 
-class DataProcessing():
+class _DataProcessing():
+    '''
+        ## Not working
+        ## It's just for an internal use - Do not use!
+    
+    '''
 
 
     def __init__(self, file_path_list, file_type = 'text'):

@@ -1,13 +1,10 @@
-from typing import List, Union, Optional, Callable
-from pathlib import Path
-
 import numpy as np
 import keras
 import tensorflow as tf
 
-from ..data_io import _loaders
-from ..preprocessing.splitting import splitter
-from ..data_io.file_manager import detect_file_type 
+from pyes.preprocessing.vector_manager import splitter
+from pyes.data_io.file_manager import load_from_file
+from pyes.utils import value_to_vector
 
 
 '''
@@ -30,6 +27,8 @@ Funzionalità:
 class DatasetManager():
 
     """
+        ## !Work in progress - Not available yet!
+
         Gestione del caricamento e preprocessing di dataset.
 
         Parameters
@@ -72,20 +71,13 @@ class DatasetManager():
             self.data_paths = [data_paths]
         else:
             self.data_paths = data_paths
-        if file_type == 'auto':
-            self.file_type = detect_file_type(data_paths)
-        else:
-            self.file_type = file_type
+        self.file_type = file_type
         self.normalization_function = normalization
 
         self._raw_data = None
         self._dataset = None
         self._labels = None
 
-        self._load_functions = {
-            'text': _loaders.load_from_textFile,
-            'binary': _loaders.load_from_binaryFile
-        }
         
         
     #*## L O A D  D A T A ################################################# 
@@ -102,8 +94,8 @@ class DatasetManager():
         loaded_data = []
         for file in self.data_paths:
                 
-            loader = self._load_functions.get(self.file_type)
-            loaded_data.append(loader(file))
+            data = load_from_file(file, self.file_type)
+            loaded_data.append(data)
 
         self.raw_data = np.array(loaded_data)
 
@@ -170,17 +162,15 @@ class DatasetManager():
         '''
 
         label_list = []
-        label = 0
-        for _ in self.data_paths:
-            label = self.build_label(lab_num, dimensions) #TODO: fix using utils.value_to_vector
-            lab_num += 1
+        for label in range(len(self.data_paths)):
 
-            label_list.append(label)
+            label_vector = value_to_vector(label, dimensions)
+            label_list.append(label_vector)
         
         return label_list
 
 
-
+    #*## C O N V E R S I O N  T O  T F  D A T A S E T #####################
     def to_tf_dataset(self, input_data, buffer_size=50, batch_size=20):
         '''
             build the dataset for specific data
@@ -208,6 +198,12 @@ class DatasetManager():
         self._dataset = dataset.shuffle(buffer_size=buffer_size).batch(batch_size)
 
 
+    #*## N O R M A L I Z E ################################################
+    def normalize(self, data_to_normalize):
+        '''
+            #TODO: test
+        '''
+        return self.normalization_function(data_to_normalize)
 
     #############################################################################################*
     #*# P R O P E R T I E S                                                                     #*
@@ -243,3 +239,12 @@ class DatasetManager():
             raise ValueError('No dataset loaded. Call to_tf_dataset() first.')
         
         return self._dataset
+    
+
+
+
+
+#*## T E S T I N G ################################### 
+if __name__ == '__main__':
+
+    print('Hello')

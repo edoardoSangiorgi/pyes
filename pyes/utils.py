@@ -51,6 +51,7 @@ def is_even(number): # tested
         return False
 
 
+
 #*## V A L U E  T O  V E C T O R ############################################
 def value_to_vector(value, dimension=None): # tested
     '''
@@ -87,7 +88,6 @@ def value_to_vector(value, dimension=None): # tested
 #*### T E S T ########################################################
 if __name__ == '__main__':
 
-    file1 = 'testo.txt'
-    file2 = 'binario.bin'
+    val = 5
 
     print('END', end='\n\n')
